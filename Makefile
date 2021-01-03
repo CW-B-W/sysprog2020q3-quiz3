@@ -1,10 +1,13 @@
 All: test1 test2
 
 test1: test1.cpp
-	g++ -fsanitize=undefined -Wall test1.cpp -o test1
+	clang-format -i -style=file $^
+	g++ -fsanitize=undefined -Wall $^ -o $@
 
 test2: test2.cpp
-	g++ -fsanitize=undefined -Wall test2.cpp -o test2
+	clang-format -i -style=file $^
+	g++ -fsanitize=undefined -Wall $^ -o $@
+	gnuplot test2-plot.gp
 
 clean:
 	rm test1 test2

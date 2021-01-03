@@ -3,9 +3,9 @@
 
 #define ASR(m, n)                                                              \
     do {                                                                       \
-        const intx_t logical = (((intx_t)-1) >> 1) > 0;                          \
-        uintx_t fixu = -(logical & (m < 0));                                    \
-        intx_t fix = *(intx_t *)&fixu;                                           \
+        const intx_t logical = (((intx_t)-1) >> 1) > 0;                        \
+        uintx_t fixu = -(logical & (m < 0));                                   \
+        intx_t fix = *(intx_t *)&fixu;                                         \
         return (m >> n) | (fix ^ (fix >> n));                                  \
     } while (0);
 
