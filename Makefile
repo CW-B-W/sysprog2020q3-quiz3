@@ -1,4 +1,4 @@
-All: test1 test2 test4
+All: test1 test2 test4 test5
 
 test1: ./test1/test1
 
@@ -46,4 +46,4 @@ test5-plot: $(wildcard ./test5/*.dat)
 	g++ -Wall $^ -o $@ -O2
 
 clean:
-	rm ./test1/test1 ./test2/test2 ./test4/test4
+	rm ./test1/test1 ./test2/test2 ./test4/test4 ./test5/test5
