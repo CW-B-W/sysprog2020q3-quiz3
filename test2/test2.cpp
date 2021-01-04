@@ -89,7 +89,7 @@ int bench_branch()
 
 int main()
 {
-    //bench();
+    // bench();
     bench_branch();
     return 0;
 }
