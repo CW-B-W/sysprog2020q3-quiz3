@@ -11,6 +11,11 @@ bool isPowerOfFour_LessBranch(int num)
     return (num > 0) && ((num & (num - 1)) == 0) & !(__builtin_ctz(num) & 0x1);
 }
 
+bool isPowerOfFour_Branchless(int num)
+{
+    return ((num & (num - 1)) == 0) & !(__builtin_ctz(num | (1 << 31)) & 0x1);
+}
+
 bool isPowerOfFour_Naive(int num)
 {
     int n = 1;
@@ -25,7 +30,7 @@ bool isPowerOfFour_Naive(int num)
 int bench()
 {
     bool (*test_func[])(int) = {isPowerOfFour, isPowerOfFour_LessBranch,
-                                isPowerOfFour_Naive};
+                                isPowerOfFour_Naive, isPowerOfFour_Branchless};
     FILE *f_list[sizeof(test_func) / sizeof(bool (*)(int))];
     for (long unsigned f = 0; f < sizeof(test_func) / sizeof(bool (*)(int));
          ++f) {
