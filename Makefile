@@ -1,4 +1,4 @@
-All: test1 test2
+All: test1 test2 test4
 
 test1: ./test1/test1
 
@@ -15,6 +15,11 @@ test2-plot: ./test2/test2
 	clang-format -i -style=file $^
 	g++ -Wall $^ -o $@
 
+test4: ./test4/test4
+
+./test4/test4: ./test4/test4.cpp
+	clang-format -i -style=file $^
+	g++ -Wall $^ -o $@
 
 clean:
-	rm ./test1/test1 ./test2/test2
+	rm ./test1/test1 ./test2/test2 ./test4/test4
