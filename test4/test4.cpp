@@ -62,6 +62,7 @@ uint64_t gcd64_ctz(uint64_t u, uint64_t v)
     return u << shift;
 }
 
+
 static inline uint64_t splitmix64_stateless(uint64_t index)
 {
     uint64_t z = (index + UINT64_C(0x9E3779B97F4A7C15));
@@ -69,6 +70,10 @@ static inline uint64_t splitmix64_stateless(uint64_t index)
     z = (z ^ (z >> 27)) * UINT64_C(0x94D049BB133111EB);
     return z ^ (z >> 31);
 }
+/*
+ * source:
+ * https://github.com/lemire/testingRNG/blob/master/source/lehmer64.h
+ */
 uint64_t lehmer64()
 {
     const uint64_t seed = 65521; /* prime */
