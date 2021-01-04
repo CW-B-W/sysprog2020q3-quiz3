@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -31,6 +32,36 @@ size_t improved(const uint64_t *bitmap, size_t bitmapsize, uint32_t *out)
             int r = __builtin_ctzll(bitset);
             out[pos++] = k * 64 + r;
             bitset ^= t;
+        }
+    }
+    return pos;
+}
+
+size_t improved_more(const uint64_t *bitmap, size_t bitmapsize, uint32_t *out)
+{
+    size_t pos = 0;
+    uint64_t bitset;
+    for (size_t k = 0; k < bitmapsize; ++k) {
+        bitset = bitmap[k];
+        if (__builtin_popcount(bitset) > 32) {
+            bitset = ~bitset;
+            int idx = 0;
+            while (bitset != 0) {
+                uint64_t t = bitset & -bitset;
+                int r = __builtin_ctzll(bitset);
+                for (int i = idx; i < r; ++i)
+                    out[pos++] = k * 64 + i;
+                idx = r + 1;
+                bitset ^= t;
+            }
+        }
+        else {
+            while (bitset != 0) {
+                uint64_t t = bitset & -bitset;
+                int r = __builtin_ctzll(bitset);
+                out[pos++] = k * 64 + r;
+                bitset ^= t;
+            }
         }
     }
     return pos;
@@ -70,13 +101,18 @@ void bench_dataset(const uint64_t *testdata, size_t testdata_size,
                    const char *w_filepath)
 {
     uint32_t *tmp = new uint32_t[testdata_size * 64];
-    size_t (*test_func[])(const uint64_t *, size_t, uint32_t *) = {naive,
-                                                                   improved};
+    size_t (*test_func[])(const uint64_t *, size_t,
+                          uint32_t *) = {naive, improved, improved_more};
 
     size_t L = sizeof(test_func) / sizeof(bool (*)(int));
 
     FILE *fp = fopen(w_filepath, "w");
     double res[100][L];
+
+    for (size_t f = 0; f < L; ++f) {
+        assert(test_func[0](testdata, testdata_size, tmp) ==
+               test_func[f](testdata, testdata_size, tmp));
+    }
 
     for (size_t f = 0; f < L; ++f) {
         for (int t = 0; t < 100; ++t) {
@@ -105,7 +141,7 @@ void bench()
     uint64_t pattern_list[][1] = {{0x0000000000000000}, {0x0000000000000001},
                                   {0x0000000000000003}, {0x0000FFFF0000FFFF},
                                   {0x13579BDF13579BDF}, {0xF0F0F0F0F0F0F0F0},
-                                  {0xFFFFFFFFFFFFFFFF}};
+                                  {0xFFF0FFF0FFF0FFF0}, {0xFFFFFFFFFFFFFFFF}};
     size_t pattern_list_size = sizeof(pattern_list) / sizeof(uint64_t);
 
     for (size_t i = 0; i < pattern_list_size; ++i) {
