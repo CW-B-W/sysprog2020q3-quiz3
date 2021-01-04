@@ -33,5 +33,17 @@ test4-plot: $(wildcard ./test4/*.dat)
 	clang-format -i -style=file $^
 	g++ -Wall $^ -o $@ -O2
 
+test5: ./test5/test5
+
+test5-test: ./test5/test5
+	cd test5 && ./test5
+
+test5-plot: $(wildcard ./test5/*.dat)
+	cd test5 && gnuplot test5-plot.gp
+
+./test5/test5: ./test5/test5.cpp
+	clang-format -i -style=file $^
+	g++ -Wall $^ -o $@ -O2
+
 clean:
 	rm ./test1/test1 ./test2/test2 ./test4/test4
