@@ -31,7 +31,7 @@ test4-plot: $(wildcard ./test4/*.dat)
 
 ./test4/test4: ./test4/test4.cpp
 	clang-format -i -style=file $^
-	g++ -Wall $^ -o $@
+	g++ -Wall $^ -o $@ -O2
 
 clean:
 	rm ./test1/test1 ./test2/test2 ./test4/test4
