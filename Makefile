@@ -7,7 +7,7 @@ test1-test: ./test1/test1
 
 ./test1/test1: ./test1/test1.cpp
 	clang-format -i -style=file $^
-	g++ -fsanitize=undefined -Wall $^ -o $@
+	g++ --std=c++17 -fsanitize=undefined -Wall $^ -o $@
 
 test2: ./test2/test2
 
@@ -19,7 +19,7 @@ test2-plot: $(wildcard ./test2/*.dat)
 
 ./test2/test2: ./test2/test2.cpp
 	clang-format -i -style=file $^
-	g++ -Wall $^ -o $@
+	g++ --std=c++17 -Wall $^ -o $@
 
 test4: ./test4/test4
 
@@ -31,7 +31,7 @@ test4-plot: $(wildcard ./test4/*.dat)
 
 ./test4/test4: ./test4/test4.cpp
 	clang-format -i -style=file $^
-	g++ -Wall $^ -o $@ -O2
+	g++ --std=c++17 -Wall $^ -o $@ -O2
 
 test5: ./test5/test5
 
@@ -43,7 +43,7 @@ test5-plot: $(wildcard ./test5/*.dat)
 
 ./test5/test5: ./test5/test5.cpp
 	clang-format -i -style=file $^
-	g++ -Wall $^ -o $@ -O2
+	g++ --std=c++17 -Wall $^ -o $@ -O2
 
 clean:
 	rm ./test1/test1 ./test2/test2 ./test4/test4 ./test5/test5

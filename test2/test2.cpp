@@ -71,7 +71,7 @@ int bench_branch()
     for (long unsigned f = 0; f < sizeof(test_func) / sizeof(bool (*)(int));
          ++f) {
         char filepath[32];
-        sprintf(filepath, "./func%lu.dat", f);
+        sprintf(filepath, "./branch_func%lu.dat", f);
         f_list[f] = fopen(filepath, "w");
         for (int t = 0; t < 100; ++t) {
             clock_t start = clock();
@@ -89,7 +89,7 @@ int bench_branch()
 
 int main()
 {
-    // bench();
+    bench();
     bench_branch();
     return 0;
 }
