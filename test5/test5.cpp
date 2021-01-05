@@ -43,9 +43,14 @@ size_t improved_more(const uint64_t *bitmap, size_t bitmapsize, uint32_t *out)
     uint64_t bitset;
     for (size_t k = 0; k < bitmapsize; ++k) {
         bitset = bitmap[k];
-        if (__builtin_popcount(bitset) > 32) {
+        if (__builtin_popcountll(bitset) > 32) {
             bitset = ~bitset;
             int idx = 0;
+            if (bitset == 0) {
+                for (int i = 0; i < 64; ++i)
+                    out[pos++] = k * 64 + i;
+                continue;
+            }
             while (bitset != 0) {
                 uint64_t t = bitset & -bitset;
                 int r = __builtin_ctzll(bitset);
@@ -110,8 +115,12 @@ void bench_dataset(const uint64_t *testdata, size_t testdata_size,
     double res[100][L];
 
     for (size_t f = 0; f < L; ++f) {
-        assert(test_func[0](testdata, testdata_size, tmp) ==
-               test_func[f](testdata, testdata_size, tmp));
+        if (test_func[0](testdata, testdata_size, tmp) !=
+            test_func[f](testdata, testdata_size, tmp)) {
+            printf("Unmatched output size: %016lX %ld: %lu, %lu\n", *testdata,
+                   f, test_func[0](testdata, testdata_size, tmp),
+                   test_func[f](testdata, testdata_size, tmp));
+        }
     }
 
     for (size_t f = 0; f < L; ++f) {
@@ -138,10 +147,16 @@ void bench()
 {
     const size_t bitmapsize = 16384;
     uint64_t *bitmap = new uint64_t[bitmapsize]; /* 2^20 bits */
-    uint64_t pattern_list[][1] = {{0x0000000000000000}, {0x0000000000000001},
-                                  {0x0000000000000003}, {0x0000FFFF0000FFFF},
-                                  {0x13579BDF13579BDF}, {0xF0F0F0F0F0F0F0F0},
-                                  {0xFFF0FFF0FFF0FFF0}, {0xFFFFFFFFFFFFFFFF}};
+    // uint64_t pattern_list[][1] = {{0x0000000000000000}, {0x0000000000000001},
+    //                               {0x0000000000000003}, {0x0000FFFF0000FFFF},
+    //                               {0x13579BDF13579BDF}, {0xF0F0F0F0F0F0F0F0},
+    //                               {0xFFF0FFF0FFF0FFF0},
+    //                               {0xFFFFFFFFFFFFFFFF}};
+    uint64_t pattern_list[][1] = {{0x0000000000000000},
+                                  {0x0000000000000001},
+                                  {0x13579BDF2468ACE0},
+                                  {0x7FFFFFFFFFFFFFFF},
+                                  {0xFFFFFFFFFFFFFFFF}};
     size_t pattern_list_size = sizeof(pattern_list) / sizeof(uint64_t);
 
     for (size_t i = 0; i < pattern_list_size; ++i) {
@@ -150,6 +165,7 @@ void bench()
         sprintf(filepath, "./0x%016lX.dat", pattern_list[i][0]);
         bench_dataset(bitmap, bitmapsize, filepath);
     }
+    delete[] bitmap;
 }
 
 int main()
