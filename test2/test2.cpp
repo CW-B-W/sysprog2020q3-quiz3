@@ -1,9 +1,29 @@
 #include <algorithm>
 #include <chrono> // std::chrono::system_clock
+#include <cmath>
 #include <cstdio>
 #include <cstring>
 #include <ctime>
 #include <random> // std::default_random_engine
+
+bool isPowerOfFour_math(int n)
+{
+    if (n == 0)
+        return 0;
+    double lg = log2(n);
+    return (lg == (int)lg) & !((int)lg & 1);
+}
+
+bool isPowerOfFour_Naive(int num)
+{
+    int n = 1;
+    while (n) {
+        if (n == num)
+            return true;
+        n *= 4;
+    }
+    return false;
+}
 
 bool isPowerOfFour(int num)
 {
@@ -20,21 +40,11 @@ bool isPowerOfFour_Branchless(int num)
     return ((num & (num - 1)) == 0) & !(__builtin_ctz(num | (1 << 31)) & 0x1);
 }
 
-bool isPowerOfFour_Naive(int num)
-{
-    int n = 1;
-    while (n) {
-        if (n == num)
-            return true;
-        n *= 4;
-    }
-    return false;
-}
-
 int bench()
 {
     bool (*test_func[])(int) = {isPowerOfFour, isPowerOfFour_LessBranch,
-                                isPowerOfFour_Branchless, isPowerOfFour_Naive};
+                                isPowerOfFour_Branchless, isPowerOfFour_Naive,
+                                isPowerOfFour_math};
     FILE *f_list[sizeof(test_func) / sizeof(bool (*)(int))];
     for (long unsigned f = 0; f < sizeof(test_func) / sizeof(bool (*)(int));
          ++f) {
@@ -66,7 +76,8 @@ int bench_branch()
                  std::default_random_engine(seed));
 
     bool (*test_func[])(int) = {isPowerOfFour, isPowerOfFour_LessBranch,
-                                isPowerOfFour_Branchless, isPowerOfFour_Naive};
+                                isPowerOfFour_Branchless, isPowerOfFour_Naive,
+                                isPowerOfFour_math};
     FILE *f_list[sizeof(test_func) / sizeof(bool (*)(int))];
     for (long unsigned f = 0; f < sizeof(test_func) / sizeof(bool (*)(int));
          ++f) {
