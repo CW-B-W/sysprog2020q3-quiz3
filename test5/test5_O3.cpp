@@ -180,7 +180,7 @@ void bench()
     for (size_t i = 0; i < pattern_list_size; ++i) {
         generate_periodic_bitmap(bitmap, bitmapsize, pattern_list[i], 1);
         char filepath[64];
-        sprintf(filepath, "./0x%016lX.dat", pattern_list[i][0]);
+        sprintf(filepath, "./0x%016lX_O3.dat", pattern_list[i][0]);
         bench_dataset(bitmap, bitmapsize, filepath);
     }
     delete[] bitmap;
