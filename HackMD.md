@@ -100,8 +100,8 @@ digraph {
     B->A[style=invisible,dir=none];
 }
 ```
-可發現只要`做負數 Right Shift 的時候，將左邊(MSB)補 1 即可`
-這個做法(負數時將 MSB 補 1)稱為 [Sign Extension](https://en.wikipedia.org/wiki/Sign_extension)
+可發現只要`做負數 Right Shift 的時候，將左邊(MSB)補 1 即可`  
+這個做法(負數時將 MSB 補 1)稱為 [Sign Extension](https://en.wikipedia.org/wiki/Sign_extension)  
 相比之下，若將 MSB 補 0 則稱為 [Zero Extension](https://en.wikipedia.org/wiki/Sign_extension#Zero_extension)
 
 :::info
@@ -110,7 +110,7 @@ digraph {
 
 可知 Verilog 支援兩種 Right Shfit Operator
 1. $>>$
-為 Logical Right Shift (LRS)，做 Zero Extension (MSB 補 0)
+為 Logical Right Shift (LRS)，做 Zero Extension (MSB 補 0)  
 2. $>>>$
 為 Arithmetic Right Shift (ARS)，做 Sign Extension (MSB 補 1)
 
@@ -118,13 +118,13 @@ digraph {
 :::
 
 以下範例皆以
-$>>$ 代表 Logical Right Shift
+$>>$ 代表 Logical Right Shift  
 $>>>$ 代表 Arithmetic Right Shift
 
 ---
 
 正確性證明：
-考慮一負數$(<-1)$，為方便表示，顯示出其 Least Significant 1 (LS1) 
+考慮一負數$(<-1)$，為方便表示，顯示出其 Least Significant 1 (LS1)  
 (在此假設是第 2 bit。假設 LS1 在其他位置，都可以得同樣結論)
 ```graphviz
 digraph {
@@ -201,7 +201,7 @@ digraph {
 ---
 
 #### 如何確認 Compiler 支不支援 ASR/LSR？
-可以用 $-1$ 做 Right Shift 來確認
+可以用 $-1$ 做 Right Shift 來確認  
 已知在 8bit int
 ```graphviz
 digraph {
@@ -222,7 +222,7 @@ digraph {
     A->C[style=invisible,dir=none];
 }
 ```
-(注：$>>>$ 代表 Arithmetic Right Shift)
+(注：$>>>$ 代表 Arithmetic Right Shift)  
 (注：$>>$ 代表 Logical Right Shift)
 
 故我們可以利用 $>>$ 後的結果是 $>0$ or $<0$ 來判斷是否 Compiler 支援 ASR：
@@ -268,7 +268,7 @@ LSR 與 ASR 差在 MSB 是補 0 還是 補 1，故若 Compiler 不支援 ASR，�
 1. A = (Y | Z)
 1. A 即為 X 做 ASR N bits 的結果
 
-Example: 假設 
+Example: 假設   
 X = (int8_t) -8; N = 2
 ```graphviz
 digraph {
@@ -297,8 +297,8 @@ digraph {
     B->A[style=invisible,dir=none];
 }
 ```
-其中 bitmask Z 的做法，仍以
-X = (int8_t) -8; N = 2
+其中 bitmask Z 的做法，仍以  
+X = (int8_t) -8; N = 2   
 為例，欲得
 ```graphviz
 digraph {
@@ -394,8 +394,8 @@ int asr_i(signed int m, unsigned int n)
         * fix^(fix>>n) 即為 bitmask = 0
 1. 將 $(m>>n)$ 與 bitmask 做 $OR$
 
-以下以
-m = (int8_t) -8; n = 2
+以下以  
+m = (int8_t) -8; n = 2  
 用圖示示例
 
 ---
@@ -760,9 +760,9 @@ lowest bit of n = (n & -n)
 可參考 [Bit Twiddling Hacks](https://graphics.stanford.edu/~seander/bithacks.html)
 >The expression (v & -v) extracts the least significant 1 bit from v.
 
-說明：
-以 8 bits 整數說明
-假設數字 X，其 lowest bit 在第 k 個 bit
+說明：  
+以 8 bits 整數說明  
+假設數字 X，其 lowest bit 在第 k 個 bit  
 在此示例 k = 3
 ```graphviz
 digraph {
@@ -795,7 +795,7 @@ digraph {
 
 ---
 
-找到 lowest bit，然後呢？
+找到 lowest bit，然後呢？  
 => 只存在一個 bit，則其必為 lowest bit，並且將其 toggle 掉後，數字即變為 0
 
 故
@@ -816,9 +816,9 @@ int isPowerOfTwo_LowestBit(int n) {
 n & (n-1)
 ```
 
-說明：
-以 8 bits 整數說明
-假設數字 X，其 lowest bit 在第 k 個 bit
+說明：  
+以 8 bits 整數說明  
+假設數字 X，其 lowest bit 在第 k 個 bit  
 在此示例 k = 3
 ```graphviz
 digraph {
@@ -861,6 +861,7 @@ int isPowerOfTwo_LowestBit(int n) {
 可得出規則，如果 N
 1. 是 2 的冪次
 2. N 的 trailing zeros 有偶數個
+
 則 N 為 4 的冪次
 
 ---
@@ -1011,7 +1012,7 @@ LBB0_1:
 ---
 
 #### Version 3 (0 branch)
-Version 1 與 Version 2 問題都在於 $num = 0$ 時 ctz 會出錯，那是否可以針對 $num = 0$ 時做特殊處理，使得結果一樣，且 ctz 不會出錯？
+Version 1 與 Version 2 問題都在於 $num = 0$ 時 ctz 會出錯，那是否可以針對 $num = 0$ 時做特殊處理，使得結果一樣，且 ctz 不會出錯？  
 => 直接在 ctz 的輸入，將 num 的 MSB 設為 1
 
 ```graphviz
@@ -1153,7 +1154,7 @@ testdata 為 [0, $2^{19}$) 與 $2^{19}$  個 0 的集合(共 $2^{20}$ 個數字)
 
 ### ctz, clz 應用於 LeetCode (延伸問題 3.)
 #### [LeetCode 1009. Complement of Base 10 Integer](https://leetcode.com/problems/complement-of-base-10-integer)
-題意：
+題意：  
 求非負整數 $N$ 的 $NOT$，結果的 bitwidth 必須與 N 相同
 ```graphviz
 digraph {
@@ -1175,7 +1176,7 @@ digraph {
 }
 ```
 
-解法：
+解法：  
 直接用 `~ operator` ，並利用 `clz` 做出 bit-mask 以達到指定 bitwidth 即可
 ```CPP=
 int bitwiseComplement(int N){
@@ -1184,7 +1185,7 @@ int bitwiseComplement(int N){
     return 1;
 }
 ```
-但這樣需要考慮 $N = 0$ 時不能用 clz，需要特判、又有 branch
+但這樣需要考慮 $N = 0$ 時不能用 clz，需要特判、又有 branch  
 可以利用上面消除 `isPowerOfFour` branch 的方法，做
 ```cpp
 __builtin_clz(N|1)
@@ -1200,11 +1201,11 @@ int bitwiseComplement(int N) {
 ---
 
 #### [LeetCode 41. First Missing Positive](https://leetcode.com/problems/first-missing-positive/)
-題意：
+題意：  
 給一個未排序整數 array，問沒出現在 array 中的正整數最小為多少
 
-思路：
-從規格(測資)下手，發現`nums.length <= 300`
+思路：  
+從規格(測資)下手，發現`nums.length <= 300`  
 可以推知，**`missing positive` 最大只會是 301**
 
 * 因為要讓 `missing positive` 最大，只能將 1~300 都放在 array 中，否則 1~300 間必有一數缺失
@@ -1260,7 +1261,7 @@ void printUnaryEncoding(int n)
 總共用 n+1 bits，只適合小數字壓縮
 
 #### Golomb-Rice coding
-先選一數字 $m=2^k$，將 $n / m$ 做 `Unary coding`，將 $n \% m$ 的 bits 直接接在尾端
+先選一數字 $m=2^k$，將 $n / m$ 做 `Unary coding`，將 $n \% m$ 的 bits 直接接在尾端  
 因為 $m$ 為 2's power，所以 $n / m$ 與 $n \% m$ 可直接用 bitwise 處理
 ```cpp=+
 void printBits(int n);
@@ -1361,9 +1362,9 @@ int numberOfSteps (int num)
 1. 每次遇到 1 都必須要 1 次操作
 2. 在 Most Significant One ~ 第 0 bit 間的所有數字都必須被 right shift 到底 1 次
 
-所以總次數可以直接算得，為
-`1 的個數` + `most significant one 的位置`
-利用 `popcount` 可算出 `1 的個數`
+所以總次數可以直接算得，為  
+`1 的個數` + `most significant one 的位置`  
+利用 `popcount` 可算出 `1 的個數`  
 利用 `31 - clz` 可算出 `most significant one` 的位置
 ```CPP=
 int numberOfSteps (int num)
@@ -1424,10 +1425,10 @@ What's more?
 [From Wikipedia](https://en.wikipedia.org/wiki/Euclidean_algorithm)
 > Émile Léger, in 1837, studied the worst case, which is when the inputs are consecutive Fibonacci numbers.
 
-即 Worst Case 發生在兩輸入為相鄰的 [Fibonacci Number](https://en.wikipedia.org/wiki/Fibonacci_number)
+即 Worst Case 發生在兩輸入為相鄰的 [Fibonacci Number](https://en.wikipedia.org/wiki/Fibonacci_number)  
 可在 [Origins of the analysis of the Euclidean algorithm](https://www.sciencedirect.com/science/article/pii/S0315086084710317) 找到相關證明
 
-用 C Code 測試 Fibonacci Sequence 第 93 項與第 92 項
+用 C Code 測試 Fibonacci Sequence 第 93 項與第 92 項  
 (93-th Fibonacci number 為 uint64_t 能表示的最大 Fibonacci number)
 
 測出 uint64_t 範圍內， gcd recursive 深度最多 92 層
@@ -1462,9 +1463,9 @@ $Binary GCD$ 可分為 4 個 case
 
 第 1~3 點很好理解
 
-第 4 點就得稍微想一下，為什麼不用 $gcd(a, b) = gcd(b, a\%b)$ ，而只用 $|a-b|$呢？
-為了方便表示，先假設 $a>b$，則式 4. 可變為
-$gcd(a, b) = gcd(a-b, b)$
+第 4 點就得稍微想一下，為什麼不用 $gcd(a, b) = gcd(b, a\%b)$ ，而只用 $|a-b|$呢？  
+為了方便表示，先假設 $a>b$，則式 4. 可變為  
+$gcd(a, b) = gcd(a-b, b)$  
 可以發現
 1. 因為 $gcd(a-b, b)$ 是 $gcd(a\%b, b)$ 的子情況 ($\%$ 即為多次做 $-$ 運算)。故 $gcd(a-b, b)$ 與 $gcd(a\%b, b)$ 可以算出一樣的結果
 2. 因為 $a, b$ 都是 odd，故 $a-b$ 必為 even。如此就可以重複套用式 2. or 式 3.，再次用 bitwise operation 加速
@@ -1652,7 +1653,7 @@ uint64_t gcd64(uint64_t u, uint64_t v)
 
 ### 為何需要 Binary GCD, 而不直接用 % operator
 
-如果沒有硬體除法器，Compiler 就只能用軟體模擬除法
+如果沒有硬體除法器，Compiler 就只能用軟體模擬除法  
 如此一來就有用 Binary GCD 的必要性
 
 以下用 [MPLAB® X IDE](https://www.microchip.com/en-us/development-tools-tools-and-software/mplab-x-ide) 模擬 [型號=?]
@@ -1703,12 +1704,12 @@ for (int i = 0; i < 64; i++) {
         out[pos++] = p + i;
 }
 ```
-固定跑了 64 iterations 來逐一測試第 i-th bit 是否為 1
+固定跑了 64 iterations 來逐一測試第 i-th bit 是否為 1  
 若 64 bits 裡面 1 的數量非常少，則相當浪費時間
 
-可利用 `lowest bit` 與 `ctz` 來優化
-用 `lowest bit` 快速找出 1 的所在位置
-用 `ctz` 快速找出這個 1 的 offset
+可利用 `lowest bit` 與 `ctz` 來優化  
+用 `lowest bit` 快速找出 1 的所在位置  
+用 `ctz` 快速找出這個 1 的 offset  
 改寫為
 ```cpp=8
 while (bitset) {
@@ -1855,7 +1856,9 @@ size_t improved(uint64_t *bitmap, size_t bitmapsize, uint32_t *out)
 3. pattern3 (mid) . 0x13579BDF2468ACE0
 4. pattern4 (aful). 0x7FFFFFFFFFFFFFFF
 5. pattern5 (full). 0xFFFFFFFFFFFFFFFF
+
 並以
+
 1. `-O2`
 2. `-O2 + #pragma unroll 4`
     * 僅加在 Native Version
@@ -1865,16 +1868,16 @@ size_t improved(uint64_t *bitmap, size_t bitmapsize, uint32_t *out)
 :::warning
 我的測試編譯器為 clang，而非 gcc
 
-gcc 用 `-O2 -funroll-loops` 就會做 loop unrolling
-clang 用 `-O2 -funroll-loops` **則不會**
+gcc 用 `-O2 -funroll-loops` 就會做 loop unrolling  
+clang 用 `-O2 -funroll-loops` **則不會**  
 clang 需要用到 `-O3 -funroll-loops` 才會有 loop unrolling
 
 ---
 
-但 clang 可在 loop 前加上 
-`#pragma unroll`
-或
-`##pragma unroll n`
+但 clang 可在 loop 前加上   
+`#pragma unroll`  
+或  
+`##pragma unroll n`  
 **並使用`-O1` 以上編譯優化**，以達到 loop unrolling 效果
 
 用 `-O1` 編譯
