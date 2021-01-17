@@ -1,5 +1,5 @@
 set term png
-set output './plots/test5-bench-mid.png'
+set output './plots/test5-bench-mid_O2.png'
 set xlabel "i-th test"
 set ylabel "exec time (sec)"
 plot [0:100][0:0.002]\
@@ -9,7 +9,7 @@ plot [0:100][0:0.002]\
     './plot-data/0x13579BDF2468ACE0.dat' using 1:5 title 'Mid Density improved guaneec'
 
 set term png
-set output './plots/test5-bench-zero.png'
+set output './plots/test5-bench-zero_O2.png'
 set xlabel "i-th test"
 set ylabel "exec time (sec)"
 plot [0:100][0:0.002]\
@@ -19,7 +19,7 @@ plot [0:100][0:0.002]\
     './plot-data/0x0000000000000000.dat' using 1:5 title 'Zero Density improved guaneec'
 
 set term png
-set output './plots/test5-bench-one.png'
+set output './plots/test5-bench-one_O2.png'
 set xlabel "i-th test"
 set ylabel "exec time (sec)"
 plot [0:100][0:0.002]\
@@ -29,7 +29,7 @@ plot [0:100][0:0.002]\
     './plot-data/0x0000000000000001.dat' using 1:5 title 'One Density improved guaneec'
 
 set term png
-set output './plots/test5-bench-almost_full.png'
+set output './plots/test5-bench-almost_full_O2.png'
 set xlabel "i-th test"
 set ylabel "exec time (sec)"
 plot [0:100][0:0.002]\
@@ -39,7 +39,7 @@ plot [0:100][0:0.002]\
     './plot-data/0x7FFFFFFFFFFFFFFF.dat' using 1:5 title 'Almost Full Density improved guaneec'
 
 set term png
-set output './plots/test5-bench-full.png'
+set output './plots/test5-bench-full_O2.png'
 set xlabel "i-th test"
 set ylabel "exec time (sec)"
 plot [0:100][0:0.002]\
