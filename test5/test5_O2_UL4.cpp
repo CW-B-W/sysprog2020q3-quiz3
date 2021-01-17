@@ -13,7 +13,7 @@ size_t naive(const uint64_t *bitmap, size_t bitmapsize, uint32_t *out)
     for (size_t k = 0; k < bitmapsize; ++k) {
         uint64_t bitset = bitmap[k];
         size_t p = k * 64;
-#pragma clang loop unroll_count(4)
+#pragma unroll 4
         for (int i = 0; i < 64; i++) {
             if ((bitset >> i) & 0x1)
                 out[pos++] = p + i;
@@ -66,7 +66,7 @@ size_t improved_more(const uint64_t *bitmap, size_t bitmapsize, uint32_t *out)
             bitset = ~bitset;
             int idx = 0;
             if (bitset == 0) {
-#pragma clang loop unroll_count(8)
+#pragma unroll 8
                 for (int i = 0; i < 64; ++i)
                     out[pos++] = k * 64 + i;
                 continue;
