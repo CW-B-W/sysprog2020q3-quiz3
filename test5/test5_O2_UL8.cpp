@@ -66,6 +66,7 @@ size_t improved_more(const uint64_t *bitmap, size_t bitmapsize, uint32_t *out)
             bitset = ~bitset;
             int idx = 0;
             if (bitset == 0) {
+#pragma clang loop unroll_count(8)
                 for (int i = 0; i < 64; ++i)
                     out[pos++] = k * 64 + i;
                 continue;
