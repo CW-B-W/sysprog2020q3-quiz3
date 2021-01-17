@@ -8,7 +8,7 @@ uint64_t gcd64_modop(uint64_t u, uint64_t v)
 {
     while ((u %= v) && (v %= u))
         ;
-    return u + v;
+    return u | v;
 }
 
 uint64_t gcd64(uint64_t u, uint64_t v)

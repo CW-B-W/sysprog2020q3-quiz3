@@ -33,29 +33,45 @@ test4-plot: $(wildcard ./test4/*.dat)
 	clang-format -i -style=file $^
 	g++ --std=c++17 -Wall $^ -o $@ -O2
 
-test5: ./test5/test5 ./test5/test5_O2_UL ./test5/test5_O3
+test5: ./test5/test5_O2 ./test5/test5_O2_UL4 ./test5/test5_O2_UL8 ./test5/test5_O3
 
-test5-test: ./test5/test5 ./test5/test5_O2_UL ./test5/test5_O3
-	cd test5 && ./test5
-	cd test5 && ./test5_O2_UL
+test5-test: ./test5/test5_O2 ./test5/test5_O2_UL4 ./test5/test5_O2_UL8 ./test5/test5_O3
+	rm -rf "./test5/plot-data"
+	mkdir -p "./test5/plot-data"
+	cd test5 && ./test5_O2
+	cd test5 && ./test5_O2_UL4
+	cd test5 && ./test5_O2_UL8
 	cd test5 && ./test5_O3
 
 test5-plot: $(wildcard ./test5/*.dat)
-	cd test5 && gnuplot test5-plot.gp
-	cd test5 && gnuplot test5-plot_O2_UL.gp
+	rm -rf "./test5/plots"
+	mkdir -p "./test5/plots"
+	cd test5 && gnuplot test5-plot_O2.gp
+	cd test5 && gnuplot test5-plot_O2_UL4.gp
+	cd test5 && gnuplot test5-plot_O2_UL8.gp
 	cd test5 && gnuplot test5-plot_O3.gp
 
-./test5/test5: ./test5/test5.cpp
+./test5/test5_O2: ./test5/test5_O2.cpp
 	clang-format -i -style=file $^
 	g++ --std=c++17 -Wall $^ -o $@ -O2
 
-./test5/test5_O2_UL: ./test5/test5_O2_UL.cpp
+./test5/test5_O2_UL4: ./test5/test5_O2_UL4.cpp
 	clang-format -i -style=file $^
-	g++ --std=c++17 -Wall $^ -o $@ -O2 -funroll-loops
+	g++ --std=c++17 -Wall $^ -o $@ -O2
+
+./test5/test5_O2_UL8: ./test5/test5_O2_UL8.cpp
+	clang-format -i -style=file $^
+	g++ --std=c++17 -Wall $^ -o $@ -O2
 
 ./test5/test5_O3: ./test5/test5_O3.cpp
 	clang-format -i -style=file $^
 	g++ --std=c++17 -Wall $^ -o $@ -O3 -funroll-loops
 
 clean:
-	rm ./test1/test1 ./test2/test2 ./test4/test4 ./test5/test5 ./test5/test5_O2_UL ./test5/test5_O3
+	rm -f ./test1/test1
+	rm -f ./test2/test2
+	rm -f ./test4/test4
+	rm -f ./test5/test5_O2
+	rm -f ./test5/test5_O2_UL4
+	rm -f ./test5/test5_O2_UL8
+	rm -f ./test5/test5_O3

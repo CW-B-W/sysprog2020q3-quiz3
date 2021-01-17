@@ -13,6 +13,7 @@ size_t naive(const uint64_t *bitmap, size_t bitmapsize, uint32_t *out)
     for (size_t k = 0; k < bitmapsize; ++k) {
         uint64_t bitset = bitmap[k];
         size_t p = k * 64;
+#pragma clang loop unroll_count(4)
         for (int i = 0; i < 64; i++) {
             if ((bitset >> i) & 0x1)
                 out[pos++] = p + i;
@@ -180,7 +181,8 @@ void bench()
     for (size_t i = 0; i < pattern_list_size; ++i) {
         generate_periodic_bitmap(bitmap, bitmapsize, pattern_list[i], 1);
         char filepath[64];
-        sprintf(filepath, "./plot-data/0x%016lX_O3.dat", pattern_list[i][0]);
+        sprintf(filepath, "./plot-data/0x%016lX_O2_UL4.dat",
+                pattern_list[i][0]);
         bench_dataset(bitmap, bitmapsize, filepath);
     }
     delete[] bitmap;
