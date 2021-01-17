@@ -124,8 +124,8 @@ void bench_dataset(const uint64_t *testdata, size_t testdata_size,
                    const char *w_filepath)
 {
     uint32_t *tmp = new uint32_t[testdata_size * 64];
-    size_t (*test_func[])(const uint64_t *, size_t, uint32_t *) = {
-        naive, improved, improved_more, improved_guaneec};
+    size_t (*test_func[])(const uint64_t *, size_t,
+                          uint32_t *) = {naive, improved, improved_more};
 
     size_t L = sizeof(test_func) / sizeof(bool (*)(int));
 
