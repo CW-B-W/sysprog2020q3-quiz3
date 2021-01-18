@@ -23,7 +23,14 @@ test2-plot: $(wildcard ./test2/*.dat)
 
 test4: ./test4/test4
 
-test4-test: ./test4/test4
+./test4/test4_gendata: ./test4/test4_gendata.cpp
+	clang-format -i -style=file $^
+	g++ --std=c++17 -Wall $^ -o $@
+
+test4-gendata: ./test4/test4_gendata
+	cd test4 && ./test4_gendata
+
+test4-test: test4_gendata ./test4/test4
 	cd test4 && ./test4
 
 test4-plot: $(wildcard ./test4/*.dat)
@@ -71,6 +78,7 @@ clean:
 	rm -f ./test1/test1
 	rm -f ./test2/test2
 	rm -f ./test4/test4
+	rm -f ./test4/test4_gendata
 	rm -f ./test5/test5_O2
 	rm -f ./test5/test5_O2_UL4
 	rm -f ./test5/test5_O2_UL8
