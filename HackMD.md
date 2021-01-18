@@ -14,11 +14,6 @@ contributed by < `CW-B-W` >
 [nelsonlai1](https://hackmd.io/@nelsonlai1/2020q3_quiz3)  
 [guaneec](https://hackmd.io/@guaneec/sp2020q3-quiz3)
 
----
-##### 以下待參考
-
-[Tim096](https://hackmd.io/@Tim096/ByYU-b7Iv)
-
 ## Outline
 [TOC]
 
@@ -868,9 +863,36 @@ int isPowerOfTwo_LowestBit(int n) {
 
 #### 如何快速求 trailing zeros 數量?
 
-:::danger
-TODO
-:::
+[GNU Other Built-in Functions](https://gcc.gnu.org/onlinedocs/gcc/Other-Builtins.html) 裡含有
+>Built-in Function:   
+    >>int __builtin_ctz (unsigned int x)
+    >>>Returns the number of trailing 0-bits in x, starting at the least significant bit position. If x is 0, the result is undefined.
+    >>
+    >>int __builtin_ctzl (unsigned long)
+    >>>Similar to __builtin_ctz, except the argument type is unsigned long.
+    >>
+    >>int __builtin_ctzll (unsigned long long)
+    >>>Similar to __builtin_ctz, except the argument type is unsigned long long.
+
+
+若編譯器不支援  
+可利用 Bit Twiddling Hacks 裡實作法  
+[Count the consecutive zero bits (trailing) on the right in parallel](https://graphics.stanford.edu/~seander/bithacks.html#ZerosOnRightParallel)
+
+```cpp=
+unsigned ctz(unsigned int v)
+{
+	unsigned int c = 32; // c will be the number of zero bits on the right
+	v &= -signed(v);
+	if (v) c--;
+	if (v & 0x0000FFFF) c -= 16;
+	if (v & 0x00FF00FF) c -= 8;
+	if (v & 0x0F0F0F0F) c -= 4;
+	if (v & 0x33333333) c -= 2;
+	if (v & 0x55555555) c -= 1;
+	return c;
+}
+```
 
 ---
 藉由 ctz 可寫出以下 C code
@@ -1146,7 +1168,7 @@ bool isPowerOfFour_Branchless(int num)
 
 testdata 為 [0, $2^{19}$) 與 $2^{19}$  個 0 的集合(共 $2^{20}$ 個數字)，並將此集合 random shuffle
 
-如此 branch 就不具規律性，猜中率會降低
+如此 branch 就不具規律性，猜中率會降低  
 圖中顯示 branchless 在此情況(branch prediction 難以預測)下確實較具優勢
 ![](https://raw.githubusercontent.com/CW-B-W/sysprog2020q3-quiz3/master/test2/test2-bench-branch.png)
 
@@ -1385,9 +1407,49 @@ int numberOfSteps (int num)
 ```
 
 ### 不使用 GNU extensions 實作 [LeetCode 1342.](https://leetcode.com/problems/number-of-steps-to-reduce-a-number-to-zero/)
-:::danger
 
-:::
+詳細參考 [sysprog2020q3-quiz3](https://hackmd.io/@sysprog/2020-quiz3) 裡提供的實作法
+```cpp=
+unsigned popcnt_branchless(unsigned v)
+{
+    unsigned n;
+    n = (v >> 1) & 0x77777777;
+    v -= n;
+    n = (n >> 1) & 0x77777777;
+    v -= n;
+    n = (n >> 1) & 0x77777777;
+    v -= n;
+
+    v = (v + (v >> 4)) & 0x0F0F0F0F;
+    v *= 0x01010101;                                     
+
+    return v >> 24;
+}
+```
+
+---
+
+### 實作 uint64_t 版本的 popcnt_branchless
+在此基於上面實作延伸，改成 `uint64_t` 版本
+
+將 `integer literals` 改成 64 bits，最後 right shift 56 bits 即可
+```cpp=
+uint64_t popcnt_branchless_uint64(uint64_t v)
+{
+    uint64_t n;
+    n = (v >> 1) & 0x7777777777777777;
+    v -= n;
+    n = (n >> 1) & 0x7777777777777777;
+    v -= n;
+    n = (n >> 1) & 0x7777777777777777;
+    v -= n;
+
+    v = (v + (v >> 4)) & 0x0F0F0F0F0F0F0F0F;
+    v *= 0x0101010101010101;
+
+    return v >> 56;
+}
+```
 
 ---
 
@@ -1403,13 +1465,15 @@ $gcd$ 可分為 2 個 case
 可簡易實作出 Recursive 版本
 ```cpp=
 uint64_t gcd_recursive(uint64_t a, uint64_t b) {
-    return b == 0 ? gcd_recursive(b, a%b, depth) : a;
+    return b != 0 ? gcd_recursive(b, a%b, depth) : a;
 }
 ```
 
-甚至可以只用兩行實作 Iterative 版本
+甚至可以實作出非常簡單的 Iterative 版本
 ```cpp=
 uint64_t gcd_iterative(uint64_t a, uint64_t b) {
+    if (!u || !v)
+        return a | b;
     while ((a%=b) && (b%=a));
     return a | b;
 }
@@ -1426,9 +1490,20 @@ What's more?
 > Émile Léger, in 1837, studied the worst case, which is when the inputs are consecutive Fibonacci numbers.
 
 即 Worst Case 發生在兩輸入為相鄰的 [Fibonacci Number](https://en.wikipedia.org/wiki/Fibonacci_number)  
-可在 [Origins of the analysis of the Euclidean algorithm](https://www.sciencedirect.com/science/article/pii/S0315086084710317) 找到相關證明
 
-用 C Code 測試 Fibonacci Sequence 第 93 項與第 92 項  
+#### 證明：
+若要讓 $gcd(a, b)$ 的運算次數最多，很顯然地，我們也需要讓 $gcd(b, a\%b)$ 的運算次數最多  
+
+我們可以將遞迴每一層的 $gcd$ 輸入，看作一個序列 $Sn$，即：$gcd(S_n, S_{n-1}) = gcd(S_{n-1}, S_{n-2}) = gcd(S_{n-2}, S_{n-3}) = ... = gcd(S_1=1, S_0=0) = 1$  
+
+又因為  
+$gcd(S_n, S_{n-1}) = gcd(S_{n-1}, S_{n}\%S_{n-1}) = gcd(S_{n-1}, S_{n-2})$  
+為了讓遞迴能最深，需要滿足 $S_{n} \% S_{n-1} = S_{n} - S_{n-1}$  
+故可得 $S_{n} - S_{n-1} = S_{n-2}$，即 $Sn$ 為 Fibonacci 數列
+
+
+
+#### 用 C Code 測試 Fibonacci Sequence 第 93 項與第 92 項  
 (93-th Fibonacci number 為 uint64_t 能表示的最大 Fibonacci number)
 
 測出 uint64_t 範圍內， gcd recursive 深度最多 92 層
@@ -1470,7 +1545,34 @@ $gcd(a, b) = gcd(a-b, b)$
 1. 因為 $gcd(a-b, b)$ 是 $gcd(a\%b, b)$ 的子情況 ($\%$ 即為多次做 $-$ 運算)。故 $gcd(a-b, b)$ 與 $gcd(a\%b, b)$ 可以算出一樣的結果
 2. 因為 $a, b$ 都是 odd，故 $a-b$ 必為 even。如此就可以重複套用式 2. or 式 3.，再次用 bitwise operation 加速
 
+#### 以 C Code 實作
+##### Recursive
+* 注意 $gcd(abs(u-v), min(u,v))$ 可能造成 Overflow，故用 SWAP
+```cpp=
+#define SWAP(x, y) do { uint64_t t = x; x = y; y = t; } while (0)
+uint64_t gcd64_recursive(uint64_t u, uint64_t v)
+{
+	if (!u || !v)
+		return u | v;
+		
+	if (!((u&1ULL)||(v&1ULL))) {
+		return 2ULL * gcd64_recursive(u>>1ULL, v>>1ULL);
+	}
+	else if (!(u&1ULL)) {
+		return gcd64_recursive(u>>1ULL, v);
+	}
+	else if (!(v&1ULL)) {
+		return gcd64_recursive(u, v>>1ULL);
+	}
+	else {
+		if (v > u)
+			SWAP(u, v);
+		return gcd64_recursive(u-v, v);
+	}
+}
+```
 
+##### Iterative
 ```CPP=
 #include <stdint.h>
 uint64_t gcd64(uint64_t u, uint64_t v) {
@@ -1551,6 +1653,65 @@ uint64_t gcd64_ctz(uint64_t u, uint64_t v)
 
 ### Worst Case of Binary GCD
 
+由實驗觀察得到，當 bitwidth = n bits 時，$gcd_{bin}(2^{n-1}, 2^{n}-1)$ 會有最大遞迴深度  
+其深度為 $3n-1$
+
+實驗 C code
+:::spoiler
+```cpp=
+#include <stdio.h>
+#include <stdint.h>
+
+#define SWAP(x, y) do { uint64_t t = x; x = y; y = t; } while (0)
+uint64_t gcd64_recursive(uint64_t u, uint64_t v, int *depth)
+{
+	(*depth)++;
+	if (!u || !v)
+		return u | v;
+		
+	if (!((u&1ULL)||(v&1ULL))) {
+		return 2ULL * gcd64_recursive(u>>1ULL, v>>1ULL, depth);
+	}
+	else if (!(u&1ULL)) {
+		return gcd64_recursive(u>>1ULL, v, depth);
+	}
+	else if (!(v&1ULL)) {
+		return gcd64_recursive(u, v>>1ULL, depth);
+	}
+	else {
+		if (v > u)
+			SWAP(u, v);
+		return gcd64_recursive(u-v, v, depth);
+	}
+}
+
+int main(void) {
+	int cnt[256][256] = {0};
+	for (int i = 0; i < 256; ++i) {
+		for (int j = 0; j < 256; ++j) {
+			gcd64_recursive(i, j, &cnt[i][j]);
+		}
+	}
+	
+	for (int t = 2; t <= 256; t <<= 1) {
+		int maxv = -1, maxi = -1, maxj = -1;
+		for (int i = 0; i < t; ++i) {
+			for (int j = 0; j < t; ++j) {
+				if (maxv < cnt[i][j]) {
+					maxv = cnt[i][j];
+					maxi = i;
+					maxj = j;
+				}
+			}
+		}
+		printf("%dbits - %d %d %d\n", __builtin_ctz(t), maxi, maxj, maxv);
+	}
+	return 0;
+}
+
+```
+:::
+
 :::danger
 補說明
 :::
@@ -1562,53 +1723,58 @@ uint64_t gcd64_ctz(uint64_t u, uint64_t v)
 比較
 1. Recursive GCD using `% operator`
 2. Iterative GCD using `% operator`
-3. Binary GCD
-4. Binary GCD with ctz
+3. Recursive Binary GCD
+4. Iterative Binary GCD
+5. Iterative Binary GCD with ctz
 
-測試資料為
-1. $2^{20}$ 組，組內為兩亂數
-2. $2^{20}$ 組，組內為兩互質數
-3. $2^{20}$ 組，組內為兩數有倍數關係
-4. 
-:::danger
-需考慮輸入資料，會影響到效能 (互質, 倍數關係, etc.)
-:::
+測試資料皆為 $2^{15}$ 對 64bit 數字，並以以下 5 個 case 分析
+1. Random: 對內為兩亂數
+2. Bad GCD: 對內為兩相鄰的 Fibonacci Number (見上方有 GCD Worst Case 分析)
+    * 以亂數選取相鄰的一對 Fibonacci Number
+3. Good GCD: 對內為有倍數關係的兩數字
+4. Bad Binary GCD: 對內為 ($2^{n}-1$, $2^{n-1}$) (見上方有 Binary GCD Worst Case 分析)
+    * 以亂數選取 n
+5. Good Binary GCD: 對內為亂數，但限制數字最多只有 8bit 能為 1
 
+對應以下實作方式
+:::spoiler
 ```cpp=
-uint64_t gcd64_ctz(uint64_t u, uint64_t v)
+uint64_t gcd64_recursive(uint64_t a, uint64_t b)
+{
+    return b == 0ULL ? a : gcd64_recursive(b, a % b);
+}
+
+uint64_t gcd64_iterative(uint64_t a, uint64_t b)
+{
+    if (!a || !b)
+        return a | b;
+    while ((a %= b) && (b %= a))
+        ;
+    return a | b;
+}
+
+uint64_t binarygcd64_recursive(uint64_t u, uint64_t v)
 {
     if (!u || !v)
         return u | v;
 
-    int shift = __builtin_ctzll(u | v);
-    u >>= shift;
-    v >>= shift;
-
-    u >>= __builtin_ctzll(u);
-
-    do {
-        v >>= __builtin_ctzll(v);
-
-        if (u < v) {
-            v -= u;
-        }
-        else {
-            uint64_t t = u - v;
-            u = v;
-            v = t;
-        }
-    } while (v);
-    return u << shift;
+    if (!((u & 1ULL) || (v & 1ULL))) {
+        return 2ULL * binarygcd64_recursive(u >> 1ULL, v >> 1ULL);
+    }
+    else if (!(u & 1ULL)) {
+        return binarygcd64_recursive(u >> 1ULL, v);
+    }
+    else if (!(v & 1ULL)) {
+        return binarygcd64_recursive(u, v >> 1ULL);
+    }
+    else {
+        if (v > u)
+            swap(u, v);
+        return binarygcd64_recursive(u - v, v);
+    }
 }
 
-uint64_t gcd64_modop(uint64_t u, uint64_t v)
-{
-    while ((u %= v) && (v %= u))
-        ;
-    return u | v;
-}
-
-uint64_t gcd64(uint64_t u, uint64_t v)
+uint64_t binarygcd64_iterative(uint64_t u, uint64_t v)
 {
     if (!u || !v)
         return u | v;
@@ -1632,22 +1798,58 @@ uint64_t gcd64(uint64_t u, uint64_t v)
     } while (v);
     return u << shift;
 }
-```
 
-1. 亂數測試
-:::danger
-[TODO]
-* 互質？不互質？。如何不算到random的效能差異？
-* 以 [lehmer64](https://github.com/lemire/testingRNG/blob/master/source/lehmer64.h) 產生 $2^{16}$ 個 64bit 亂數作為 testset，並將同樣的 testset 丟進三個版本的 gcd 評測。重複 100 次。
-    * 其實用 mod operator 竟然最快
-    * 用 ctz 也比 original version 快很多
-![](https://i.imgur.com/jFW1K9U.png)
-* 以 -O2 編譯優化 (上一張圖為 -O0)
-    * 發現 ctz 變成最快的
-![](https://i.imgur.com/QdLuubD.png)
+uint64_t binarygcd64_iterative_ctz(uint64_t u, uint64_t v)
+{
+    if (!u || !v)
+        return u | v;
+
+    int shift = __builtin_ctzl(u | v);
+    u >>= shift;
+    v >>= shift;
+
+    u >>= __builtin_ctzl(u);
+
+    do {
+        v >>= __builtin_ctzl(v);
+
+        if (u < v) {
+            v -= u;
+        }
+        else {
+            uint64_t t = u - v;
+            u = v;
+            v = t;
+        }
+    } while (v);
+    return u << shift;
+}
+```
 :::
 
-2. 互質數測試
+---
+
+#### 測試結果
+1. Random:  
+![](https://raw.githubusercontent.com/CW-B-W/sysprog2020q3-quiz3/master/test4/plots/test4-test0.png)
+
+2. Bad GCD:  
+可以看出輸入相鄰的 Fibonacci Number，確實使輾轉相除法效能變很差  
+值得一提的是，相鄰的 Fibonacci Number 並不會是 Binary GCD 的 Worst Case  
+![](https://raw.githubusercontent.com/CW-B-W/sysprog2020q3-quiz3/master/test4/plots/test4-test1.png)
+
+3. Good GCD:  
+當輸入有倍數關係，可以看出 Binary GCD 效果略遜於 GCD  
+![](https://raw.githubusercontent.com/CW-B-W/sysprog2020q3-quiz3/master/test4/plots/test4-test2.png)
+
+4. Bad Binary GCD:  
+當輸入為 ($2^{n}-1, 2^{n-1}$)，Binary GCD 很明顯地效果比 GCD 差很多  
+![](https://raw.githubusercontent.com/CW-B-W/sysprog2020q3-quiz3/master/test4/plots/test4-test3.png)
+
+5. Good Binary GCD:  
+在 bit 1 很少的情況下，ctz 版本表現確實最好。但其他兩版 Binary GCD 卻沒有比 GCD 還要好，推測是因為 bit 1 的出現位置是亂數產生，造成 Branch Prediction 不好預測。  
+![](https://raw.githubusercontent.com/CW-B-W/sysprog2020q3-quiz3/master/test4/plots/test4-test4.png)
+
 
 ---
 
@@ -1656,9 +1858,8 @@ uint64_t gcd64(uint64_t u, uint64_t v)
 如果沒有硬體除法器，Compiler 就只能用軟體模擬除法  
 如此一來就有用 Binary GCD 的必要性
 
-以下用 [MPLAB® X IDE](https://www.microchip.com/en-us/development-tools-tools-and-software/mplab-x-ide) 模擬 [型號=?]
 :::danger
-以 MPLAB X simulator 比較有沒有乘法器的差異
+以 MPLAB X simulator 比較有沒有乘法器的差異?
 :::
 
 ---
@@ -1741,10 +1942,18 @@ size_t improved(uint64_t *bitmap, size_t bitmapsize, uint32_t *out)
 ---
 
 ### 進一步改善極端情況
-原本的版本不適合應對 dense bitset (e.g. 0xFFFFFFFFFFFFFFFF)
-:::danger
-補說明
-:::
+原本的版本不適合應對 dense bitset (e.g. 0xFFFFFFFFFFFFFFFF)  
+此版當發現 $popcount > 32bits$ 時，將 bitset 取 $NOT$，以求減少在
+```cpp=8
+        while (bitset != 0) {
+            uint64_t t = bitset & -bitset;
+            int r = __builtin_ctzll(bitset);
+            out[pos++] = k * 64 + r;
+            bitset ^= t;                           
+        }
+```
+的執行次數  
+如以下 C code
 ```cpp=
 size_t improved_more(const uint64_t *bitmap, size_t bitmapsize, uint32_t *out)
 {
@@ -1756,6 +1965,7 @@ size_t improved_more(const uint64_t *bitmap, size_t bitmapsize, uint32_t *out)
             bitset = ~bitset;
             int idx = 0;
             if (bitset == 0) {
+                /* Marginal case */
                 /* orignal bitset = 64'b1111_...._1111 */
                 for (int i = 0; i < 64; ++i)
                     out[pos++] = k * 64 + i;
@@ -1786,7 +1996,7 @@ size_t improved_more(const uint64_t *bitmap, size_t bitmapsize, uint32_t *out)
 ---
 
 ### 參考同學的改善法
-[guaneec 同學的改善法](https://hackmd.io/@guaneec/sp2020q3-quiz3)
+[guaneec 同學的改善法](https://hackmd.io/@guaneec/sp2020q3-quiz3)  
 原本第 8 行的 condition
 ```cpp=
 #include <stddef.h>
@@ -1829,7 +2039,7 @@ size_t improved(uint64_t *bitmap, size_t bitmapsize, uint32_t *out)
 :::danger
 下圖效能比較中，可看出 [guaneec](https://hackmd.io/@guaneec/sp2020q3-quiz3) 同學的改善方法其實並不會有改善(已修正為 popcountll)
 
-以 `-O2` 編譯，
+(以 `-O2` 編譯)
 1. Bit Pattern: 0x0000000000000000
 ![](https://i.imgur.com/fxzZLPd.png)
 
@@ -1841,7 +2051,7 @@ size_t improved(uint64_t *bitmap, size_t bitmapsize, uint32_t *out)
 
 ---
 
-### 利用 Loop Unrolling 改善 Native Version
+### 利用 Loop Unrolling 改善 Naive Version
 
 :::danger
 
@@ -1861,9 +2071,9 @@ size_t improved(uint64_t *bitmap, size_t bitmapsize, uint32_t *out)
 
 1. `-O2`
 2. `-O2 + #pragma unroll 4`
-    * 僅加在 Native Version
+    * 僅加在 Naive Version
 4. `-O2 + #pragma unroll 8`
-    * 僅加在 Native Version
+    * 僅加在 Naive Version
 5. `-O3 -funroll-loops` 比較
 :::warning
 我的測試編譯器為 clang，而非 gcc
@@ -1932,92 +2142,92 @@ foo(int*):                               # @foo(int*)
 如何解讀結果？
 :::
 
-Pattern 1. 0x0000000000000000
-(`-O2`)
+Pattern 1. 0x0000000000000000  
+(`-O2`)  
 ![](https://raw.githubusercontent.com/CW-B-W/sysprog2020q3-quiz3/master/test5/plots/test5-bench-zero_O2.png)
 
-Pattern 1. 0x0000000000000000
-(`-O2 unroll_count(4)`)
+Pattern 1. 0x0000000000000000  
+(`-O2 unroll_count(4)`)  
 ![](https://raw.githubusercontent.com/CW-B-W/sysprog2020q3-quiz3/master/test5/plots/test5-bench-zero_O2_UL4.png)
 
-Pattern 1. 0x0000000000000000
-(`-O2 unroll_count(8)`)
+Pattern 1. 0x0000000000000000  
+(`-O2 unroll_count(8)`)  
 ![](https://raw.githubusercontent.com/CW-B-W/sysprog2020q3-quiz3/master/test5/plots/test5-bench-zero_O2_UL8.png)
 
-Pattern 1. 0x0000000000000000
-(`-O3 -funroll-loops`)
+Pattern 1. 0x0000000000000000  
+(`-O3 -funroll-loops`)  
 ![](https://raw.githubusercontent.com/CW-B-W/sysprog2020q3-quiz3/master/test5/plots/test5-bench-zero_O3.png)
 
 ---
 
-Pattern 2. 0x0000000000000001
-(`-O2`)
+Pattern 2. 0x0000000000000001  
+(`-O2`)  
 ![](https://raw.githubusercontent.com/CW-B-W/sysprog2020q3-quiz3/master/test5/plots/test5-bench-one_O2.png)
 
-Pattern 2. 0x0000000000000001
-(`-O2 unroll_count(4)`)
+Pattern 2. 0x0000000000000001  
+(`-O2 unroll_count(4)`)  
 ![](https://raw.githubusercontent.com/CW-B-W/sysprog2020q3-quiz3/master/test5/plots/test5-bench-one_O2_UL4.png)
 
-Pattern 2. 0x0000000000000001
-(`-O2 unroll_count(8)`)
+Pattern 2. 0x0000000000000001  
+(`-O2 unroll_count(8)`)  
 ![](https://raw.githubusercontent.com/CW-B-W/sysprog2020q3-quiz3/master/test5/plots/test5-bench-one_O2_UL8.png)
 
-Pattern 2. 0x0000000000000001
-(`-O3 -funroll-loops`)
+Pattern 2. 0x0000000000000001  
+(`-O3 -funroll-loops`)  
 ![](https://raw.githubusercontent.com/CW-B-W/sysprog2020q3-quiz3/master/test5/plots/test5-bench-one_O3.png)
 
 ---
 
-Pattern 3. 0x13579BDF2468ACE0
-(`-O2`)
+Pattern 3. 0x13579BDF2468ACE0  
+(`-O2`)  
 ![](https://raw.githubusercontent.com/CW-B-W/sysprog2020q3-quiz3/master/test5/plots/test5-bench-mid_O2.png)
 
-Pattern 3. 0x13579BDF2468ACE0
-(`-O2 unroll_count(4)`)
+Pattern 3. 0x13579BDF2468ACE0  
+(`-O2 unroll_count(4)`)  
 ![](https://raw.githubusercontent.com/CW-B-W/sysprog2020q3-quiz3/master/test5/plots/test5-bench-mid_O2_UL4.png)
 
-Pattern 3. 0x13579BDF2468ACE0
-(`-O2 unroll_count(8)`)
+Pattern 3. 0x13579BDF2468ACE0  
+(`-O2 unroll_count(8)`)  
 ![](https://raw.githubusercontent.com/CW-B-W/sysprog2020q3-quiz3/master/test5/plots/test5-bench-mid_O2_UL8.png)
 
-Pattern 3. 0x13579BDF2468ACE0
-(`-O3 -funroll-loops`)
+Pattern 3. 0x13579BDF2468ACE0  
+(`-O3 -funroll-loops`)  
 ![](https://raw.githubusercontent.com/CW-B-W/sysprog2020q3-quiz3/master/test5/plots/test5-bench-mid_O3.png)
 
 ---
 
-Pattern 4. 0x7FFFFFFFFFFFFFFF
-(`-O2`)
+Pattern 4. 0x7FFFFFFFFFFFFFFF  
+(`-O2`)  
 ![](https://raw.githubusercontent.com/CW-B-W/sysprog2020q3-quiz3/master/test5/plots/test5-bench-almost_full_O2.png)
 
-Pattern 4. 0x7FFFFFFFFFFFFFFF
-(`-O2 unroll_count(4)`)
+Pattern 4. 0x7FFFFFFFFFFFFFFF  
+(`-O2 unroll_count(4)`)  
 ![](https://raw.githubusercontent.com/CW-B-W/sysprog2020q3-quiz3/master/test5/plots/test5-bench-almost_full_O2_UL4.png)
 
-Pattern 4. 0x7FFFFFFFFFFFFFFF
-(`-O2 unroll_count(8)`)
+Pattern 4. 0x7FFFFFFFFFFFFFFF  
+(`-O2 unroll_count(8)`)  
 ![](https://raw.githubusercontent.com/CW-B-W/sysprog2020q3-quiz3/master/test5/plots/test5-bench-almost_full_O2_UL8.png)
 
-Pattern 4. 0x7FFFFFFFFFFFFFFF
-(`-O3 -funroll-loops`)
+Pattern 4. 0x7FFFFFFFFFFFFFFF  
+(`-O3 -funroll-loops`)  
 ![](https://raw.githubusercontent.com/CW-B-W/sysprog2020q3-quiz3/master/test5/plots/test5-bench-almost_full_O3.png)
 
 ---
 
-Pattern 5. 0xFFFFFFFFFFFFFFFF
-(`-O2`)
+Pattern 5. 0xFFFFFFFFFFFFFFFF  
+(`-O2`)  
 ![](https://raw.githubusercontent.com/CW-B-W/sysprog2020q3-quiz3/master/test5/plots/test5-bench-full_O2.png)
 
-Pattern 5. 0xFFFFFFFFFFFFFFFF
-(`-O2 unroll_count(4)`)
+Pattern 5. 0xFFFFFFFFFFFFFFFF  
+(`-O2 unroll_count(4)`)  
 ![](https://raw.githubusercontent.com/CW-B-W/sysprog2020q3-quiz3/master/test5/plots/test5-bench-full_O2_UL4.png)
 
-Pattern 5. 0xFFFFFFFFFFFFFFFF
-(`-O2 unroll_count(8)`)
+Pattern 5. 0xFFFFFFFFFFFFFFFF  
+(`-O2 unroll_count(8)`)  
 ![](https://raw.githubusercontent.com/CW-B-W/sysprog2020q3-quiz3/master/test5/plots/test5-bench-full_O2_UL8.png)
 
-Pattern 5. 0xFFFFFFFFFFFFFFFF
-(`-O3 - funroll-loops`)
+Pattern 5. 0xFFFFFFFFFFFFFFFF  
+(`-O3 - funroll-loops`)  
 ![](https://raw.githubusercontent.com/CW-B-W/sysprog2020q3-quiz3/master/test5/plots/test5-bench-full_O3.png)
 
 ---
@@ -2028,7 +2238,12 @@ Pattern 5. 0xFFFFFFFFFFFFFFFF
 ](https://lemire.me/blog/2018/03/08/iterating-over-set-bits-quickly-simd-edition/)
     * [GitHub](https://github.com/lemire/Code-used-on-Daniel-Lemire-s-blog/blob/master/2018/03/07/)
 :::danger
+[TODO]
+:::
 
+### 比較 Naive Version, ctz Version 與 SIMD Version
+:::danger
+[TODO]
 :::
 
 ---
