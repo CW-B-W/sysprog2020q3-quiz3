@@ -101,15 +101,15 @@ int main()
     uint64_t *dst = (uint64_t *)malloc(N * sizeof(uint64_t));
 
     void (*testfunc[])(uint64_t *, int) = {
-        generateRandom_lehmer64, generateBadCase_ForBinaryGCD,
-        generateBadCase_ForGCD, generateGoodCase_ForGCD,
+        generateRandom_lehmer64, generateBadCase_ForGCD,
+        generateGoodCase_ForGCD, generateBadCase_ForBinaryGCD,
         generateGoodCase_ForBinaryGCD};
 
     int testfunc_num = sizeof(testfunc) / sizeof(void *);
     for (int i = 0; i < testfunc_num; ++i) {
         testfunc[i](dst, N);
         char filepath[64];
-        sprintf(filepath, "testdata%d.dat", i);
+        sprintf(filepath, "./test-data/testdata%d.dat", i);
         writeTestdataFile(filepath, dst, N);
     }
     return 0;

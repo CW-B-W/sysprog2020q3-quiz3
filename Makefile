@@ -28,12 +28,18 @@ test4: ./test4/test4
 	g++ --std=c++17 -Wall $^ -o $@
 
 test4-gendata: ./test4/test4_gendata
+	rm -rf "./test4/test-data"
+	mkdir -p "./test4/test-data"
 	cd test4 && ./test4_gendata
 
-test4-test: test4_gendata ./test4/test4
+test4-test: test4-gendata ./test4/test4
+	rm -rf "./test4/plot-data"
+	mkdir -p "./test4/plot-data"
 	cd test4 && ./test4
 
 test4-plot: $(wildcard ./test4/*.dat)
+	rm -rf "./test4/plots"
+	mkdir -p "./test4/plots"
 	cd test4 && gnuplot test4-plot.gp
 
 ./test4/test4: ./test4/test4.cpp

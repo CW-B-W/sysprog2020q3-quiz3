@@ -4,14 +4,42 @@
 
 using namespace std;
 
-uint64_t gcd64_modop(uint64_t u, uint64_t v)
+uint64_t gcd64_recursive(uint64_t a, uint64_t b)
 {
-    while ((u %= v) && (v %= u))
-        ;
-    return u | v;
+    return b == 0ULL ? a : gcd64_recursive(b, a % b);
 }
 
-uint64_t gcd64(uint64_t u, uint64_t v)
+uint64_t gcd64_iterative(uint64_t a, uint64_t b)
+{
+    if (!a || !b)
+        return a | b;
+    while ((a %= b) && (b %= a))
+        ;
+    return a | b;
+}
+
+uint64_t binarygcd64_recursive(uint64_t u, uint64_t v)
+{
+    if (!u || !v)
+        return u | v;
+
+    if (!((u & 1ULL) || (v & 1ULL))) {
+        return 2ULL * binarygcd64_recursive(u >> 1ULL, v >> 1ULL);
+    }
+    else if (!(u & 1ULL)) {
+        return binarygcd64_recursive(u >> 1ULL, v);
+    }
+    else if (!(v & 1ULL)) {
+        return binarygcd64_recursive(u, v >> 1ULL);
+    }
+    else {
+        if (v > u)
+            swap(u, v);
+        return binarygcd64_recursive(u - v, v);
+    }
+}
+
+uint64_t binarygcd64_iterative(uint64_t u, uint64_t v)
 {
     if (!u || !v)
         return u | v;
@@ -36,7 +64,7 @@ uint64_t gcd64(uint64_t u, uint64_t v)
     return u << shift;
 }
 
-uint64_t gcd64_ctz(uint64_t u, uint64_t v)
+uint64_t binarygcd64_iterative_ctz(uint64_t u, uint64_t v)
 {
     if (!u || !v)
         return u | v;
@@ -62,51 +90,45 @@ uint64_t gcd64_ctz(uint64_t u, uint64_t v)
     return u << shift;
 }
 
-static inline uint64_t splitmix64_stateless(uint64_t index)
+void readTestDataFile(const char *filepath, uint64_t *dst, int n)
 {
-    uint64_t z = (index + UINT64_C(0x9E3779B97F4A7C15));
-    z = (z ^ (z >> 30)) * UINT64_C(0xBF58476D1CE4E5B9);
-    z = (z ^ (z >> 27)) * UINT64_C(0x94D049BB133111EB);
-    return z ^ (z >> 31);
-}
-/*
- * source:
- * https://github.com/lemire/testingRNG/blob/master/source/lehmer64.h
- */
-uint64_t lehmer64()
-{
-    const uint64_t seed = 65521; /* prime */
-    static __uint128_t g_lehmer64_state =
-        (((__uint128_t)splitmix64_stateless(seed)) << 64) +
-        splitmix64_stateless(seed + 1);
-    g_lehmer64_state *= 0xda942042e4dd58b5;
-    return g_lehmer64_state >> 64;
+    FILE *fp = fopen(filepath, "r");
+    assert(fp);
+
+    while (n -= 2) {
+        fscanf(fp, "%llu %llu\n", &dst[0], &dst[1]);
+        dst += 2;
+    }
 }
 
 int bench()
 {
-    uint64_t *test_data = new uint64_t[1 << (16 + 1)];
-    for (int i = 0; i < (1 << 16); ++i) {
-        test_data[i * 2 + 0] = lehmer64();
-        test_data[i * 2 + 1] = lehmer64();
-    }
+    uint64_t (*test_func[])(uint64_t, uint64_t) = {
+        gcd64_recursive, gcd64_iterative, binarygcd64_recursive,
+        binarygcd64_iterative, binarygcd64_iterative_ctz};
+    int test_func_num = sizeof(test_func) / sizeof(void *);
 
-    uint64_t (*test_func[])(uint64_t, uint64_t) = {gcd64_modop, gcd64,
-                                                   gcd64_ctz};
-    FILE *f_list[sizeof(test_func) / sizeof(bool (*)(int))];
-    for (long unsigned f = 0; f < sizeof(test_func) / sizeof(bool (*)(int));
-         ++f) {
-        char filepath[32];
-        sprintf(filepath, "./func%lu.dat", f);
-        f_list[f] = fopen(filepath, "w");
-        for (int t = 0; t < 100; ++t) {
-            clock_t start = clock();
-            for (int tt = 0; tt < (1 << 16); ++tt) {
-                test_func[f](test_data[tt * 2 + 0], test_data[tt * 2 + 1]);
+    uint64_t *test_data = new uint64_t[1 << (15 + 1)];
+    for (int td = 0; td < 5; ++td) {
+        char testfilepath[64];
+        sprintf(testfilepath, "./test-data/testdata%d.dat", td);
+        readTestDataFile(testfilepath, test_data, 1 << 16);
+
+        FILE *f_list[test_func_num];
+        for (int f = 0; f < test_func_num; ++f) {
+            char filepath[64];
+            sprintf(filepath, "./plot-data/test%d-func%d.dat", td, f);
+            f_list[f] = fopen(filepath, "w");
+            printf("running test%d func%d\n", td, f);
+            for (int t = 0; t < 100; ++t) {
+                clock_t start = clock();
+                for (int tt = 0; tt < (1 << 15); ++tt) {
+                    test_func[f](test_data[tt * 2 + 0], test_data[tt * 2 + 1]);
+                }
+                clock_t end = clock();
+                fprintf(f_list[f], "%d %f\n", t,
+                        ((double)end - start) / CLOCKS_PER_SEC);
             }
-            clock_t end = clock();
-            fprintf(f_list[f], "%d %f\n", t,
-                    ((double)end - start) / CLOCKS_PER_SEC);
         }
     }
     delete[] test_data;
