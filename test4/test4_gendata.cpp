@@ -78,7 +78,7 @@ void generateGoodCase_ForBinaryGCD(uint64_t *dst, int n)
         int setbit_num = lehmer64() & 7 + 1;
         while (setbit_num--) {
             int bit_idx = lehmer64() & 63;
-            *dst |= (1 << bit_idx);
+            *dst |= (1ULL << bit_idx);
         }
         dst++;
     }
