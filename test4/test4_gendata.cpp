@@ -97,7 +97,7 @@ void writeTestdataFile(const char *filepath, uint64_t *dst, int n)
 
 int main()
 {
-    int N = (1 << 21); /* 2 * 2^20 */
+    int N = (1 << 16); /* 2 * 2^15 */
     uint64_t *dst = (uint64_t *)malloc(N * sizeof(uint64_t));
 
     void (*testfunc[])(uint64_t *, int) = {
